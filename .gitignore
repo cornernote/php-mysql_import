@@ -1,2 +1,4 @@
 .idea
 runtime/*
+config/*
+mysql_import-*.bat
