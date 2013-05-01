@@ -119,7 +119,7 @@ class MysqlImport
             $dataFile = strtr($schemaFile, array('/schema/' => '/data/', '-schema.sql' => '.sql'));
             $table = str_replace(array($this->unzipPath . '/schema/', $this->remoteDatabase . '.', '-schema.sql'), '', $schemaFile);
             $commands[] = 'echo importing ' . $table;
-            $commands[] = 'mysql --user=root --host=localhost --database=' . $this->localDatabase . ' --execute="drop table ' . $table . '"';
+            $commands[] = 'mysql --user=root --host=localhost --database=' . $this->localDatabase . ' --execute="SET FOREIGN_KEY_CHECKS = 0; DROP TABLE `' . $table . '`"';
             $commands[] = 'mysql --user=root --host=localhost --database=' . $this->localDatabase . ' < "' . $schemaFile . '"';
             if (file_exists($dataFile)) {
                 $commands[] = 'mysql --user=root --host=localhost --database=' . $this->localDatabase . ' < "' . $dataFile . '"';
