@@ -10,6 +10,7 @@ return array(
     'unzipPath' => 'c:\xampp\htdocs\_db\unzip',
     'excludeFile' => 'c:\xampp\htdocs\_db\_exclude.txt',
     'remotePath' => '/backup/mysql/daily/{date}-00',
+    'remotePathDate' => '-1day',
     'localDatabase' => 'remote_db',
     'remoteDatabase' => 'local_db',
 );
