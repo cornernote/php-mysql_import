@@ -66,6 +66,11 @@ class MysqlImport
     public $remoteDatabase;
 
     /**
+     * @var
+     */
+    public $remotePathDate;
+
+    /**
      * Construct the class
      * @param array $config the class config
      */
@@ -83,8 +88,9 @@ class MysqlImport
     {
         $localPath = '/cygdrive/' . strtr($this->localPath, array('\\' => '/', ':' => ''));
         $excludeFile = '/cygdrive/' . strtr($this->excludeFile, array('\\' => '/', ':' => ''));
+        $date = $this->remotePathDate ? date('Y-m-d', strtotime($this->remotePathDate)) : date('Y-m-d');
         $command = $this->rsync . ' -avz --progress --rsh="' . $this->ssh . ' -p' . $this->sshPort . '" --exclude-from "' . $excludeFile . '" ';
-        $command .= $this->sshUsername . '@' . $this->sshHost . ':' . strtr($this->remotePath, array('{date}' => date('Y-m-d'))) . '/' . $this->remoteDatabase . '.* ' . $localPath;
+        $command .= $this->sshUsername . '@' . $this->sshHost . ':' . strtr($this->remotePath, array('{date}' => $date)) . '/' . $this->remoteDatabase . '.* ' . $localPath;
         return $command;
     }
 
