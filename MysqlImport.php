@@ -58,6 +58,21 @@ class MysqlImport
     /**
      * @var string
      */
+    public $localHost = 'localhost';
+
+    /**
+     * @var string
+     */
+    public $localPort = '3306';
+
+    /**
+     * @var string
+     */
+    public $localUser = 'root';
+
+    /**
+     * @var string
+     */
     public $localDatabase;
 
     /**
@@ -125,10 +140,10 @@ class MysqlImport
             $dataFile = strtr($schemaFile, array('/schema/' => '/data/', '-schema.sql' => '.sql'));
             $table = str_replace(array($this->unzipPath . '/schema/', $this->remoteDatabase . '.', '-schema.sql'), '', $schemaFile);
             $commands[] = 'echo importing ' . $table;
-            $commands[] = 'mysql --user=root --host=localhost --database=' . $this->localDatabase . ' --execute="SET FOREIGN_KEY_CHECKS = 0; DROP TABLE IF EXISTS `' . $table . '`"';
-            $commands[] = 'mysql --user=root --host=localhost --database=' . $this->localDatabase . ' < "' . $schemaFile . '"';
+            $commands[] = 'mysql --user=' . $this->localUser . ' --host=' . $this->localHost . ' --port=' . $this->localPort . ' --database=' . $this->localDatabase . ' --execute="SET FOREIGN_KEY_CHECKS = 0; DROP TABLE IF EXISTS `' . $table . '`"';
+            $commands[] = 'mysql --user=' . $this->localUser . ' --host=' . $this->localHost . ' --port=' . $this->localPort . ' --database=' . $this->localDatabase . ' < "' . $schemaFile . '"';
             if (file_exists($dataFile)) {
-                $commands[] = 'mysql --user=root --host=localhost --database=' . $this->localDatabase . ' < "' . $dataFile . '"';
+                $commands[] = 'mysql --user=' . $this->localUser . ' --host=' . $this->localHost . ' --port=' . $this->localPort . ' --database=' . $this->localDatabase . ' < "' . $dataFile . '"';
             }
         }
         return implode("\n", $commands);
