@@ -163,7 +163,7 @@ class MysqlImport
             $table = str_replace(array($this->unzipPath . '/schema/', $this->remoteDatabase . '.', '-schema.sql'), '', $schemaFile);
             $commands[] = 'echo importing ' . $table;
             $commands[] = 'mysql --user="' . $this->localUser . '" --pass="' . $this->localPass . '" --host="' . $this->localHost . '" --port="' . $this->localPort . '" --database="' . $this->localDatabase . '" --execute="SET FOREIGN_KEY_CHECKS = 0; DROP TABLE IF EXISTS `' . $table . '`"';
-            $commands[] = 'mysql --user="' . $this->localUser . '" --pass="' . $this->localPass . '" --host="' . $this->localHost . '" --po="' . $this->localPort . '" --database="' . $this->localDatabase . '" < "' . $schemaFile . '"';
+            $commands[] = 'mysql --user="' . $this->localUser . '" --pass="' . $this->localPass . '" --host="' . $this->localHost . '" --port="' . $this->localPort . '" --database="' . $this->localDatabase . '" < "' . $schemaFile . '"';
             if (file_exists($dataFile)) {
                 $commands[] = 'mysql --user="' . $this->localUser . '" --pass="' . $this->localPass . '" --host="' . $this->localHost . '" --port="' . $this->localPort . '" --database="' . $this->localDatabase . '" < "' . $dataFile . '"';
             }
