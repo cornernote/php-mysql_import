@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+php -f mysql_import.php nm/nm download
+bash runtime/nm/nm/download.bat
+
+php -f mysql_import.php nm/nm unzipAndImport
+bash runtime/nm/nm/deflate_and_import.bash
