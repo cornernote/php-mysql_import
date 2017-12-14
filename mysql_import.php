@@ -6,7 +6,7 @@ $config = require('config/' . $site . '.php');
 $mysqlImport = new MysqlImport($config);
 
 if (!file_exists('runtime/' . $site)) {
-    mkdir('runtime/' . $site, 0777,true);
+    mkdir('runtime/' . $site, 0777, true);
 }
 
 switch ($action) {
