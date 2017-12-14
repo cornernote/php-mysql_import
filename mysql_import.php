@@ -25,6 +25,7 @@ switch ($action) {
         $commands = $mysqlImport->generateImport();
         file_put_contents('runtime/' . $site . '/import.bat', $commands);
         break;
+
     case 'unzipAndImport':
         $commands = $mysqlImport->generateUnzipAndImportList();
         file_put_contents('runtime/' . $site . '/deflate_and_import.bash', $commands);

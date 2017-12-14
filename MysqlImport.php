@@ -78,6 +78,14 @@ class MysqlImport
 
     /**
      * @var string
+     *
+     * Setup from command line:
+     * mysql_config_editor set --login-path=import --host=localhost --user=root --password
+     */
+    public $localLoginPath;
+
+    /**
+     * @var string
      */
     public $localDatabase;
 
@@ -112,8 +120,7 @@ class MysqlImport
         if ($this->isWindows()) {
             $localPath = '/cygdrive/' . strtr($this->localPath, array('\\' => '/', ':' => ''));
             $excludeFile = '/cygdrive/' . strtr($this->excludeFile, array('\\' => '/', ':' => ''));
-        }
-        else {
+        } else {
             $localPath = strtr($this->localPath, array('\\' => '/', ':' => ''));
             $excludeFile = strtr($this->excludeFile, array('\\' => '/', ':' => ''));
         }
@@ -122,8 +129,7 @@ class MysqlImport
         if ($this->isWindows()) {
             $command = $this->rsync . ' -avz --progress --rsh="' . $this->ssh . ' -p' . $this->sshPort . '" --exclude-from "' . $excludeFile . '" ';
             $command .= $this->sshUsername . '@' . $this->sshHost . ':' . strtr($this->remotePath, array('{date}' => $date)) . '/' . $this->remoteDatabase . '.* ' . $localPath;
-        }
-        else {
+        } else {
             $targetPath = strtr($this->remotePath, array('{date}' => $date)) . '/' . $this->remoteDatabase . '.* ';
             $command = "{$this->rsync}  -avz --progress {$this->sshUsername}@{$this->sshHost}:/$targetPath $localPath --exclude-from $excludeFile";
         }
@@ -143,8 +149,7 @@ class MysqlImport
         foreach (glob($this->localPath . '/*.sql.gz') as $file) {
             if (strpos($file, '-schema') !== false) {
                 $unzipPath = $this->unzipPath . '/schema';
-            }
-            else {
+            } else {
                 $unzipPath = $this->unzipPath . '/data';
             }
             $commands[] = '"' . $this->sevenZip . '" e -y -o"' . $unzipPath . '\" "' . str_replace('/', '\\', $file) . '"';
@@ -162,13 +167,21 @@ class MysqlImport
             $dataFile = strtr($schemaFile, array('/schema/' => '/data/', '-schema.sql' => '.sql'));
             $table = str_replace(array($this->unzipPath . '/schema/', $this->remoteDatabase . '.', '-schema.sql'), '', $schemaFile);
             $commands[] = 'echo importing ' . $table;
-            $commands[] = 'mysql --user="' . $this->localUser . '" --pass="' . $this->localPass . '" --host="' . $this->localHost . '" --port="' . $this->localPort . '" --database="' . $this->localDatabase . '" --execute="SET FOREIGN_KEY_CHECKS = 0; DROP TABLE IF EXISTS `' . $table . '`"';
+            $commands[] = 'mysql ' . $this->authString() . ' --database="' . $this->localDatabase . '" --execute="SET FOREIGN_KEY_CHECKS = 0; DROP TABLE IF EXISTS `' . $table . '`"';
             $commands[] = 'mysql --user="' . $this->localUser . '" --pass="' . $this->localPass . '" --host="' . $this->localHost . '" --port="' . $this->localPort . '" --database="' . $this->localDatabase . '" < "' . $schemaFile . '"';
             if (file_exists($dataFile)) {
                 $commands[] = 'mysql --user="' . $this->localUser . '" --pass="' . $this->localPass . '" --host="' . $this->localHost . '" --port="' . $this->localPort . '" --database="' . $this->localDatabase . '" < "' . $dataFile . '"';
             }
         }
         return implode("\n", $commands);
+    }
+
+    public function authString()
+    {
+        if ($this->localLoginPath) {
+            return '--login-path="' . $this->localLoginPath . '"';
+        }
+        return '--user="' . $this->localUser . '" --pass="' . $this->localPass . '" --host="' . $this->localHost . '" --port="' . $this->localPort . '"';
     }
 
     public function generateUnzipAndImportList()
@@ -182,9 +195,10 @@ class MysqlImport
 
     public function getUnzipImportCommand($filePath)
     {
-        $mysqlCommand = "mysql --user={$this->localUser} --password={$this->localPass} --host={$this->localHost} --port={$this->localPort} --database={$this->localDatabase}";
+        $mysqlCommand = 'mysql ' . $this->authString() . ' --database=' . $this->localDatabase;
         $fileName = basename($filePath, '.sql.gz');
-        $tableName = end(explode('.', $fileName));
+        $_ = explode('.', $fileName);
+        $tableName = end($_);
         $tableName = str_replace('-schema', '', $tableName);
 
         $addLinesToPipe = <<<'PipeCommand'
@@ -192,12 +206,11 @@ class MysqlImport
 PipeCommand;
         if ($this->showProgress) {
             $command = "pv $filePath | gunzip | $addLinesToPipe | $mysqlCommand";
-        }
-        else {
+        } else {
             $command = "zcat $filePath | $mysqlCommand";
         }
         if (strpos($fileName, '-schema')) {
-            $command = $mysqlCommand . " <<<  \"SET FOREIGN_KEY_CHECKS = 0;DROP TABLE IF EXISTS $tableName;SET FOREIGN_KEY_CHECKS = 1;\"\n" . $command;
+            $command = $mysqlCommand . " <<<  \"SET FOREIGN_KEY_CHECKS = 0;DROP TABLE IF EXISTS \`$tableName\`;SET FOREIGN_KEY_CHECKS = 1;\"\n" . $command;
         }
         $command = "echo importing $tableName\n" . $command;
         return $command;
